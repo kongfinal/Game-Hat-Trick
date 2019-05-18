@@ -1,0 +1,500 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Hat Trick</title>
+    <style type="text/css">
+        #TimeData {
+            position: absolute;
+            left: 765px;
+            top: 27px;
+            width: 100px;
+            z-index: 999;
+            font-size: 150%;
+            color: red;
+        } 
+        #ScoreData {
+            position: absolute;
+            left: 100px;
+            top: 26px;
+            width: 100px;
+            z-index: 999;
+            font-size: 150%;
+            color: red;
+        } 
+        
+    </style>
+    <script type="text/javascript"
+            src = "simpleGame.js"></script>
+    <script type="text/javascript">
+    
+    //game sprites
+    var scene;
+    var hatDown;
+    var hatTop;
+    var bowling;
+    var clouds;
+    var ground;
+    var line5;
+    var line6;
+    var line7;
+    var boom;
+    var eff1 = 0;
+    var eff2 = 0;
+    var timeStart;
+    var timeBoom;
+    var time = 0;
+    var scoreNumber = 0;
+    var timeNumber = 30;
+
+
+
+    //sounds
+    var yayMp3;
+    var yayOgg;
+    var thunderMp3;
+    var thunderOgg;
+    var engineMp3;
+    var engineOgg;
+    
+    //constants
+    var OCEAN_SPEED = 10;
+    var NUM_BowlingS = 3;
+    var NUM_Boom = 2;
+
+    var timeInSecs;
+    var ticker;
+
+
+
+    function startTimer(secs){
+        timeInSecs = parseInt(secs)-1;
+        ticker = setInterval("tick()",1000);
+    }
+    
+    function tick() {
+        secs = timeInSecs;
+        if (secs>0) {
+            timeInSecs--;
+        }else {
+            clearInterval(ticker); 
+            scene.stop();
+            alert("Game Over!!")
+            boom.reset();
+            document.location.href = "";
+        }
+    
+        document.getElementById("TimeData").innerHTML = secs;
+    }
+    
+
+    function reload() {
+        clearInterval(ticker); 
+        startTimer(30);
+    }
+
+
+
+    function hatTop(){
+        thatTop = new Sprite(scene, "hatTop.png", 130, 110);
+        thatTop.setSpeed(0);
+        thatTop.setPosition()
+        
+        thatTop.followMouse = function(){
+            this.setPosition(scene.getMouseX(), 500);
+        }
+        
+        return thatTop;
+    }
+
+    function hatDown(){
+        thatDown = new Sprite(scene, "hatDown.png", 130, 110);
+        thatDown.setSpeed(0);
+        thatDown.setPosition()
+        
+        thatDown.followMouse = function(){
+            this.setPosition(scene.getMouseX(), 500);
+        }
+        
+        return thatDown;
+    }
+     
+    function line5(){
+        tline5 = new Sprite(scene, "line5.png", 10, 80);
+        tline5.setSpeed(0);
+        tline5.setPosition()
+        
+        tline5.followMouse = function(){
+            this.setPosition(scene.getMouseX()+48, 510);
+        }
+        
+        return tline5;
+    }
+
+    function line6(){
+        tline6 = new Sprite(scene, "line6.png", 10, 80);
+        tline6.setSpeed(0);
+        tline6.setPosition()
+        
+        tline6.followMouse = function(){
+            this.setPosition(scene.getMouseX()-48, 510);
+        }
+        
+        return tline6;
+    }
+
+    function line7(){
+        tline7 = new Sprite(scene, "line7.png", 80, 5);
+        tline7.setSpeed(0);
+        tline7.setPosition()
+        
+        tline7.followMouse = function(){
+            //this.setPosition(scene.getMouseX(), 540);
+            this.setPosition(scene.getMouseX(), 510);
+        }
+        
+        return tline7;
+    }
+
+
+
+    function Boom(){
+        tBoom = new Sprite(scene, "boom.png", 70, 70);
+        
+        tBoom.timer = new Timer();
+        tBoom.reset = function(){
+            this.setDY((Math.random() * OCEAN_SPEED) + 8);
+            this.setDX(0);
+            newX = Math.random() * scene.width;
+            this.setPosition(newX, 80);
+        } // end reset
+        
+        tBoom.checkBounds = function(){
+
+           if (this.y > scene.height){
+                this.reset();
+            } 
+           // end if
+        } 
+
+
+        tBoom.checkhatDown = function(hatDown){
+            if (this.collidesWith(hatDown)){
+               
+                //this.backup();
+                if(eff1 == 0 ){
+                    timeStart = this.timer.getElapsedTime();
+                    eff1=1;
+                }
+                this.changeImage("eff1.png");
+                this.setSpeed(0);
+                
+                //alert("Game Over!!")
+                //this.reset();
+                //document.location.href = "";
+
+                //this.setImage("eff2.png");
+                //this.setSpeed(0);
+                //this.setImage("eff3.png");
+                //this.setSpeed(0);
+                //this.setImage("eff4.png");
+                //this.setSpeed(0);
+                
+                //this.reset();
+                //this.setImage("boom.png");
+                
+                //this.setSpeed(0);
+                //this.reset();
+                //this.setImage("boom.png");
+                
+                
+            }
+        }
+
+        tBoom.checkline7 = function(line7){
+            if (this.collidesWith(line7)){
+                //this.setSpeed(0);
+                this.reset();
+            }
+        }
+
+        tBoom.checklineUPpOrDown = function(line){
+            if (this.collidesWith(line)){
+                //this.setSpeed(0);
+                this.reset();
+            }
+        }
+
+        tBoom.stop = function(){
+            scene.stop();
+        }
+
+        tBoom.reset();
+
+        return tBoom;
+    }
+
+    function makeBoom(){
+            booms = new Array(NUM_Boom);
+            for (i = 0; i < NUM_Boom; i++){
+                booms[i] = new Boom();
+            }
+    }  
+
+    function updateBoom(){
+        for (i = 0; i < NUM_Boom; i++){
+            booms[i].checkhatDown(line5);
+            booms[i].checkhatDown(line6);
+            booms[i].checkhatDown(line7);
+            booms[i].checklineUPpOrDown(lineDown);
+            booms[i].checklineUPpOrDown(lineUp);
+            booms[i].update();
+            //booms[i].changeImage("boom.png");
+            //booms[i].show()
+        } 
+    } 
+
+    function checkBoom(){
+        timeBoom = boom.timer.getElapsedTime();
+        if(eff2 == 0){
+            time = timeBoom-timeStart;
+        }
+        //scoreBoard.innerHTML = "Time: " + time;
+        if (time  > 0.07){
+            alert("Game Over!!")
+            boom.reset();
+            document.location.href = "";
+            time = 0;
+            eff2++;
+        }
+    }
+
+
+
+    
+    function Bowling(){
+        tBowling = new Sprite(scene, "Bowling.png", 55, 55);
+        
+        tBowling.reset = function(){
+            this.setDY((Math.random() * OCEAN_SPEED) + 5);
+            this.setDX(0);
+            newX = Math.random() * scene.width;
+            this.setPosition(newX, 65);
+        } // end reset
+        
+        tBowling.checkBounds = function(){
+            if (this.y < 0){
+                this.reset();
+            }
+            else if (this.y > scene.height){
+                this.reset();
+            } 
+            else if (this.x < 0){
+                this.reset();
+            }
+            else if (this.x > scene.width){
+                this.reset();
+            } // end if
+        } // end checkBounds
+        
+        tBowling.checkhatDown = function(hatDown){
+            MAX = 10
+            if (this.collidesWith(hatDown)){
+                this.setDY(this.dy * -1);            
+            
+                dx = this.x - hatDown.x;
+                dx = ((dx / hatDown.height) * 2);
+
+                dx *= MAX;
+                this.setDX(dx);
+                //this.setSpeed(0);
+                //this.reset();
+            }
+        }
+
+        tBowling.checkline7 = function(line7){
+            if (this.collidesWith(line7)){
+                //this.setSpeed(0);
+                scoreNumber++;
+                this.reset();
+            }
+        }
+
+        tBowling.checklineUPpOrDown = function(line){
+            if (this.collidesWith(line)){
+                //this.setSpeed(0);
+                this.reset();
+            }
+        }
+
+        tBowling.reset();
+  
+        return tBowling;
+    }
+
+    function makeBowling(){
+            bowlings = new Array(NUM_BowlingS);
+            for (i = 0; i < NUM_BowlingS; i++){
+                bowlings[i] = new Bowling();
+            }
+    }  
+
+    function updateBowling(){
+        for (i = 0; i < NUM_BowlingS; i++){
+            bowlings[i].checkhatDown(line5);
+            bowlings[i].checkhatDown(line6);
+            bowlings[i].checkline7(line7);
+            bowlings[i].checklineUPpOrDown(lineDown);
+            bowlings[i].checklineUPpOrDown(lineUp);
+            bowlings[i].update();
+        } 
+    } 
+
+    
+ 
+    
+    buildSounds = function(){
+        yayMp3 = new Sound("yay.mp3");
+        yayOgg = new Sound("yay.ogg");
+        
+        thunderMp3 = new Sound("thunder.mp3");
+        thunderOgg = new Sound("thunder.ogg");
+        
+        engineMp3 = new Sound("engine.mp3");
+        engineOgg = new Sound("engine.ogg");
+        
+    } // end buildSounds
+    
+    function checkCollisions(){
+        //plane on island
+        if (hatDown.collidesWith(Bowling)){
+            yayOgg.play();
+            yayMp3.play();
+            Bowling.reset();
+        } // end if
+        
+        //plane on cloud
+        for (i = 0; i < NUM_CLOUDS; i++){
+            if (hatDown.collidesWith(clouds[i])){
+                thunderOgg.play();
+                thunderMp3.play();
+                clouds[i].reset();
+            } // end if
+        } // end for
+    } // end checkCollisions
+    
+    function Ground(){
+        tGround = new Sprite(scene, "ground.png", 1000, 200);
+        tGround.setSpeed(0);
+        tGround.setPosition(500, 500);
+        return tGround;
+    }
+
+    function setScore(){
+        ScoreData.innerHTML = scoreNumber;
+    }
+
+    function setTime(){
+        TimeData.innerHTML = timeNumber;
+    }
+
+    function init(){
+        scene = new Scene();
+        scene.setBG("lightblue");
+        background = new Sprite(scene, "sky.png", 840, 420);
+        background.setSpeed(0,0);
+        background.setPosition(380, 40);
+        scoreText = new Sprite(scene, "score.png", 50, 50);
+        scoreText.setSpeed(0,0);
+        scoreText.setPosition(40, 20);
+        timeText = new Sprite(scene, "time.png", 50, 50);
+        timeText.setSpeed(0,0);
+        timeText.setPosition(700, 20);
+        scene.hideCursor();
+        bowling = new Bowling()
+        
+        lineUp = new Sprite(scene, "line8.png", 1000, 5);
+        lineUp.setSpeed(0,0);
+        lineUp.setPosition(500, 40);
+        lineDown = new Sprite(scene, "line8.png", 1000, 5);
+        lineDown.setSpeed(0,0);
+        lineDown.setPosition(500, 550);
+
+        ScoreData.innerHTML = scoreNumber;
+        TimeData.innerHTML = timeNumber;
+
+        //add virtual joystick if possible
+        if (scene.touchable){
+            joy = new Joy();
+        } // end if
+        
+        buildSounds();
+        
+       
+        // bowling = new Bowling();
+
+        line5 = new line5();
+        line6 = new line6();
+        line7 = new line7();
+        hatDown = new hatDown();
+        hatTop = new hatTop();
+        ground = new Ground();
+        boom = new Boom();
+        makeBowling();
+        makeBoom();
+        startTimer(30);
+        scene.start();
+    }  // end init
+    
+    function update(){
+        engineOgg.play();
+        engineMp3.play();
+        
+        line5.followMouse();
+        line6.followMouse();
+        line7.followMouse();
+
+        scene.clear();
+        lineUp.update();
+        background.update();
+        timeText.update();
+        scoreText.update();
+        //hatDown.followMouse();
+        
+        hatDown.followMouse();
+        hatTop.followMouse();
+
+        hatTop.update();
+        updateBowling();
+        //bowling.checkhatDown(hatDown)
+        // bowling.update()
+        
+        // checkCollisions();
+        
+        // bowling.update();
+        
+        //hatDown.update();
+        line5.update();
+        line6.update();
+        line7.update();
+
+        lineDown.update();
+
+        ground.update();
+        
+        hatDown.update();
+        
+        
+        updateBoom();
+        checkBoom();
+        setScore();
+        //setTime();
+    } // end update();
+    
+    </script>
+</head>
+<body onload = "init()">
+    <div id = "ScoreData"></div>
+    <div id = "TimeData"></div>
+</body>
+</html>
